@@ -6,7 +6,6 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 
-
 class Consumption(Base):
     __tablename__ = "consumption"
 
@@ -19,6 +18,7 @@ class Consumption(Base):
     price: Mapped[float] = mapped_column(Float)
     customer_id: Mapped[int] = mapped_column(ForeignKey("customer.id"))
     customer: Mapped["Customer"] = relationship(back_populates="consumption_history")
+
 
     def get_id(self):
         return self.id

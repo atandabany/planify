@@ -14,6 +14,7 @@ class Plan(Base):
     price: Mapped[float] = mapped_column(Float)
     type: Mapped[str] = mapped_column(String)
 
+
 def get_id(self):
     return self.id
 

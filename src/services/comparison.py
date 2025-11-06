@@ -1,6 +1,7 @@
 from src.models.customer import Customer
 from src.models.plan import Plan
 from src.models.consumption import Consumption
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -43,7 +44,7 @@ class Comparison:
         total_cost = 0
         first_year = None
         for consumption in customer.consumption_history:
-            if first_year is None:
+            if first_year == None:
                 first_year = consumption.date.year
             if consumption.date.year == first_year:
                 total_cost += consumption.price
@@ -69,64 +70,85 @@ class Comparison:
         return round(average_gb_all_customers, 2)
     
 
-    #A voir
     def get_most_popular_plan(self):
-        plan_count = {}
+        plan_count = []
+        
         for customer in self.customers:
             plan_name = customer.current_plan
-            if plan_name in plan_count:
-                plan_count[plan_name] += 1
-            else:
-                plan_count[plan_name] = 1
-        most_popular_plan = max(plan_count, key=plan_count.get)
-        return most_popular_plan
+            
+            plan_exists = False
+            
+            for item in plan_count:
+                if item[0] == plan_name:
+                    item[1] = item[1] + 1  
+                    plan_exists = True
+                    break
+            
+            if plan_exists == False:
+                plan_count.append([plan_name, 1])
+        
+        most_popular = plan_count[0][0]
+        highest_count = plan_count[0][1]
+        
+        for item in plan_count:
+            plan_name = item[0]
+            count = item[1]
+            
+            if count > highest_count:
+                most_popular = plan_name
+                highest_count = count
+        
+        return most_popular
     
 
     def get_annual_average_consumption_all_clients(self):
-        # 1. Récupérer toutes les années
-        annees = []
+        years = []
+        
         for customer in self.customers:
-            for c in customer.consumption_history:
-                if c.date.year not in annees:
-                    annees.append(c.date.year)
-
-        annees.sort()
-
-        # 2. Calculer la moyenne par année
-        moyenne_gb = []
-        moyenne_sms = []
-        moyenne_hour = []
-
-        for year in annees:
+            for consumption in customer.consumption_history:
+                year = consumption.date.year
+                
+                if year not in years:
+                    years.append(year)
+                
+        average_gb = []
+        average_sms = []
+        average_hour = []
+        
+        for year in years:
             total_gb = 0
             total_sms = 0
             total_hour = 0
-            compteur = 0
-
+            counter = 0
+            
             for customer in self.customers:
-                for c in customer.consumption_history:
-                    if c.date.year == year:
-                        total_gb += c.gb_volume
-                        total_sms += c.sms_volume
-                        total_hour += c.hour_volume 
-                        compteur += 1
-
-            if compteur > 0:
-                moyenne_gb.append(round(total_gb / compteur, 2))
-                moyenne_sms.append(round(total_sms / compteur, 2))
-                moyenne_hour.append(round(total_hour / compteur, 2))
-
-        # 3. Retourner les données
+                for consumption in customer.consumption_history:
+                    
+                    if consumption.date.year == year:
+                        total_gb = total_gb + consumption.gb_volume
+                        total_sms = total_sms + consumption.sms_volume
+                        total_hour = total_hour + consumption.hour_volume
+                        counter = counter + 1
+            
+            if counter > 0:
+                avg_gb = total_gb / counter
+                avg_sms = total_sms / counter
+                avg_hour = total_hour / counter
+                
+                average_gb.append(round(avg_gb, 2))
+                average_sms.append(round(avg_sms, 2))
+                average_hour.append(round(avg_hour, 2))
+        
         return {
-            "Go": moyenne_gb,
-            "SMS": moyenne_sms,
-            "Heure": moyenne_hour  
+            "Go": average_gb,
+            "SMS": average_sms,
+            "Heure": average_hour
         }
+
 
     def popular_plans(self):
         list_plans = []
         for customer in self.customers:
-            # Ajouter directement le plan (pas d'itération)
             list_plans.append(customer.current_plan)
 
         total = len(list_plans)
@@ -142,9 +164,8 @@ class Comparison:
         }
     
 
-
     def get_consumption_history_data(self, customer):
-        liste_consommations = []
+        list_consumptions = []
         for c in customer.consumption_history:
             ligne = {
                 "Date": c.date,
@@ -152,10 +173,25 @@ class Comparison:
                 "Volume SMS": c.sms_volume,
                 "Volume Go": c.gb_volume
             }
-            liste_consommations.append(ligne)
-        return liste_consommations
+            list_consumptions.append(ligne)
+        return list_consumptions
     
 
-    # Consommation min / max
-    # Évolution (%) par rapport à l’année précédente
-    # Forfait recommandé + prix comparé au forfait actuel
+    def best_plan_recommendation(self, customer):
+        avg_consumption = self.calculate_average_consumption_gb(customer)       
+        chosen_plan = None
+        
+        for plan in self.plans:
+            if plan.gb_volume >= avg_consumption:
+                chosen_plan = plan
+                break 
+        
+        if chosen_plan is None:
+            chosen_plan = self.plans[0]  
+            
+            for plan in self.plans:
+                if plan.gb_volume > chosen_plan.gb_volume:
+                    chosen_plan = plan
+        
+        result = f"{chosen_plan.name} ({chosen_plan.gb_volume} Go)"
+        return result

@@ -1,9 +1,9 @@
 from src.models.customer import Customer
 from src.models.plan import Plan
 from src.models.consumption import Consumption
-from src.models.declarative_base import Base
 import random
 import datetime
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
