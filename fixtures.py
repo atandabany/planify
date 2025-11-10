@@ -99,7 +99,7 @@ def load_fixtures():
                 current_month = 1
                 current_year += 1
 
-            if random.random() < 0.: 
+            if random.random() < 0: 
                 direction *= -1
 
             base_hour += random.uniform(0, profile["variation"]["hour"]) * direction + random.uniform(-1, 1)

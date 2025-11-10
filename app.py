@@ -37,7 +37,7 @@ with tab1:
 
     with col2:
         container2 = st.container(border=True)
-        container2.write(f"Conso moyenne : **{comparison.get_average_consumption_all_customers()}**")
+        container2.write(f"Conso moyenne GO : **{comparison.get_average_consumption_all_customers()}**")
 
     with col3:
         container3 = st.container(border=True)
@@ -92,14 +92,14 @@ with tab2:
         if selected_customer:
             container1 = st.container(border=True)
             container2 = st.container(border=True)
-            container1.write(f"{selected_customer.get_email()}")
+            container1.write(f"Email : {selected_customer.get_email()}")
             container2.write(f"Forfait actuel : {selected_customer.get_current_plan()}")
 
     with col7:
         container6 = st.container(border=True)
         container7 = st.container(border=True)
-        container6.write(f"Recommandation forfait : {comparison.best_plan_recommendation(selected_customer)}")
-        container7.write(f"Dépense annuel : {comparison.get_annual_cost(selected_customer)} €")
+        container6.write(f":green[Recommandation forfait : {comparison.best_plan_recommendation(selected_customer)}]")
+        container7.write(f":red[Dépense annuel : {comparison.get_annual_cost(selected_customer)} €]")
 
 
     st.divider()
